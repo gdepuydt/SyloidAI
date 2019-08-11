@@ -5,7 +5,7 @@ use crate::layer::Layer;
 use crate::trainingset::Trainingset;
 
 pub struct NeuralNet<'a> {
-    // Currently the members live on the stack, when they need to live on the heap, use a Box 
+     
     layers: Vec<&'a mut Layer>,
     training_set: &'a Trainingset,
 }
