@@ -4,42 +4,29 @@ use crate::matrix::Matrix;
 /*
 NOTE: this is all very preliminary... 
 */
-pub struct Layer {
+pub struct Layer<'a> {
 
-    activations: Box<Matrix>,
-    delta_activations: Box<Matrix>,
+    activations: &'a mut Matrix<'a>,
+    delta_activations: &'a mut Matrix<'a>,
     
-    sums: Box<Matrix>,
-    delta_sums: Box<Matrix>,
+    sums: &'a mut Matrix<'a>,
+    delta_sums: &'a mut Matrix<'a>,
     
-    weights: Box<Matrix>,
-    delta_weights: Box<Matrix>,
+    weights: &'a mut Matrix<'a>,
+    delta_weights: &'a mut Matrix<'a>,
     
-    bias: Box<Matrix>,
-    delta_bias: Box<Matrix>,
+    bias: &'a mut Matrix<'a>,
+    delta_bias: &'a mut Matrix<'a>,
 
     neuron_count: usize,
 
-    previous_layer: Box<Layer>,
-    next_layer: Box<Layer>,
+    previous_layer: &'a mut Layer<'a>,
+    next_layer: &'a mut Layer<'a>,
 }
 
-impl Layer {
+impl Layer<'_> {
     pub fn new(neuron_count: usize) -> Self{
-        // This can't be right...
-        Layer {
-            neuron_count: neuron_count,
-            activations: Box::new(Matrix::new()),
-            delta_activations: Box::new(Matrix::new()),
-            sums: Box::new(Matrix::new()),
-            delta_sums: Box::new(Matrix::new()),
-            weights: Box::new(Matrix::new()),
-            delta_weights: Box::new(Matrix::new()),
-            bias: Box::new(Matrix::new()),
-            delta_bias: Box::new(Matrix::new()),
-            previous_layer: Box::new(Layer::new(neuron_count)),
-            next_layer: Box::new(Layer::new(neuron_count)),
-        }
+        unimplemented!();
     }
 
     pub fn set_previous_layer(previous_layer: &mut Layer)  {

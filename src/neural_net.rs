@@ -6,7 +6,7 @@ use crate::trainingset::Trainingset;
 
 pub struct NeuralNet<'a> {
      
-    layers: Vec<&'a mut Layer>,
+    layers: Vec<&'a mut Layer<'a>>,
     training_set: &'a Trainingset,
 }
 
