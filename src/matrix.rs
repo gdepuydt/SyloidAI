@@ -7,7 +7,7 @@ pub struct Matrix {
     data_layout: Layout,
     rows: usize,
     columns: usize,
-    total: f32,
+    total: usize,
 }
 
 
@@ -27,7 +27,7 @@ Furthermore, it turns out the call to alloc requires unsafe Rust, which is to be
 */
 impl Matrix {
     pub unsafe fn new(rows: usize, columns: usize) -> Self {
-        let total = rows as f32 * columns as f32;
+        let total = rows * columns;
         let data_layout = Layout::from_size_align(std::mem::size_of::<f32>() * total as usize, 64).unwrap();
         Matrix {
             rows,
@@ -38,32 +38,81 @@ impl Matrix {
         }
     }
 
+    pub fn get(&self, row: usize, column: usize) -> *mut f32 {
+        if self.rows <= row || self.columns <= column {
+            panic!("Requested element ouside Matrix index bounds.");
+        }
+
+        let index = (&self.columns * row) + column;
+        unsafe {
+            self.data.add(index) as *mut f32
+        }
+    }
+
     pub fn mul(&self, a: &Matrix, b: &Matrix) {
-            // pre-requisite that columns of a match number of rows in b: What is the Rust idiom for implementing this, including error handling...
-            // For now, being novice, let's just use the panic!() function.AsMut
-            // For reference, this blogpost gives an excellent overview of idiomatic error handling in Rust:AsMut
-            // https://blog.burntsushi.net/rust-error-handling/
-
-            if a.columns != b.rows {
-                panic!("Number of columns Matrix A must match number of columns Matrix B.");
-            }
-
-            if self == a || self == b {
-                panic!("Destination matrix must be distinct from matrices A and B.");
-            }
-            
-            let shared_dimension = a.rows;
-            for _ in 1..a.rows {
-                for _ in 1..b.columns {
-                    let mut total: f32 = 0.0;
-                    for _ in 1..shared_dimension {
-                        //We need a way to access the memory in data with an index (that will be calculated using row and column count)
-                        //Unsure how to do this in Rust at the moment.
-                        //I assume this here is how we have to do it: https://doc.rust-lang.org/std/primitive.pointer.html#method.add
-                        //More specifically we could probably use: https://doc.rust-lang.org/std/ops/trait.Index.html
-                    }
+        // pre-requisite that columns of a match number of rows in b: What is the Rust idiom for implementing this, including error handling...
+        // For now, being novice, let's just use the panic!() function.AsMut
+        // For reference, this blogpost gives an excellent overview of idiomatic error handling in Rust:AsMut
+        // https://blog.burntsushi.net/rust-error-handling/
+        if a.columns != b.rows {
+            panic!("Number of columns Matrix A must match number of columns Matrix B.");
+        }
+        if self == a || self == b {
+            panic!("Destination matrix must be distinct from matrices A and B.");
+        }
+        
+        let shared_dimension = a.rows;
+        for r in 1..a.rows {
+            for c in 1..b.columns {
+                let mut total: f32 = 0.0;
+                for d in 1..shared_dimension {
+                    //We need a way to access the memory in data with an index (that will be calculated using row and column count)
+                    //Unsure how to do this in Rust at the moment.
+                    //I assume this here is how we have to do it: https://doc.rust-lang.org/std/primitive.pointer.html#method.add
+                    //More specifically we could probably use: https://doc.rust-lang.org/std/ops/trait.Index.html
+                    unsafe {
+                        total += *(a.get(r, d)) * *(b.get(d, c));
+                        *(self.get(r,c)) = total;
+                    }                   
                 }
             }
+        }
+    }
+
+    pub fn add(&self, a: &Matrix) {
+        if self.rows != a.rows || self.columns != a.columns {
+            panic!("Matrices must be of the same dimensions to perform matrix addition.");
+        }
+
+        for i in 0..self.total-1 {
+            unsafe {
+                *(self.data.add(i)) += *(a.data.add(i))
+            }
+        }
+    }
+
+    pub fn sub(&self, a: &Matrix) {
+        if self.rows != a.rows || self.columns != a.columns {
+            panic!("Matrices must be of the same dimensions to perform matrix subtraction.");
+        }
+
+        for i in 0..self.total-1 {
+            unsafe {
+                *(self.data.add(i)) -= *(a.data.add(i))
+            }
+        }
+    }
+
+    pub fn hadamard(&self, a: &Matrix) {
+        if self.rows != a.rows || self.columns != a.columns {
+            panic!("Matrices must be of the same dimensions to perform Hadamard.");
+        }
+        
+        for i in 0..self.total-1 {
+            unsafe {
+                *(self.data.add(i)) *= *(a.data.add(i))
+            }
+        }
     }
 }
 
