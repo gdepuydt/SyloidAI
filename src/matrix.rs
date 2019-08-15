@@ -1,4 +1,5 @@
 use std::alloc::{alloc, dealloc, Layout};
+use std::ops::Index;
 
 #[derive(PartialEq)]
 pub struct Matrix {
@@ -58,8 +59,8 @@ impl Matrix {
                     for _ in 1..shared_dimension {
                         //We need a way to access the memory in data with an index (that will be calculated using row and column count)
                         //Unsure how to do this in Rust at the moment.
-                        //I assume this here is hoz we have to do it: https://doc.rust-lang.org/std/primitive.pointer.html#method.add
-                        //!!TODO!!
+                        //I assume this here is how we have to do it: https://doc.rust-lang.org/std/primitive.pointer.html#method.add
+                        //More specifically we could probably use: https://doc.rust-lang.org/std/ops/trait.Index.html
                     }
                 }
             }
@@ -71,6 +72,19 @@ impl Drop for Matrix {
         unsafe {
             dealloc(self.data as *mut u8, self.data_layout);
         }
+    }
+}
+
+// Overwriting the index [] operator is an option, but matrices are '2D' with rows and columns, so, a 1D index lacks clarity...Why not just use methods?
+// Or have a google search for what is common fr working with matrices in Rust...
+
+impl Index<usize> for Matrix {
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        unsafe {
+            &*(self.data.add(index))
+        }  
     }
 }
 
