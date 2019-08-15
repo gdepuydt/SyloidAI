@@ -6,17 +6,17 @@ NOTE: this is all very preliminary...
 */
 pub struct Layer<'a> {
 
-    activations: &'a mut Matrix<'a>,
-    delta_activations: &'a mut Matrix<'a>,
+    activations: &'a mut Matrix,
+    delta_activations: &'a mut Matrix,
     
-    sums: &'a mut Matrix<'a>,
-    delta_sums: &'a mut Matrix<'a>,
+    sums: &'a mut Matrix,
+    delta_sums: &'a mut Matrix,
     
-    weights: &'a mut Matrix<'a>,
-    delta_weights: &'a mut Matrix<'a>,
+    weights: &'a mut Matrix,
+    delta_weights: &'a mut Matrix,
     
-    bias: &'a mut Matrix<'a>,
-    delta_bias: &'a mut Matrix<'a>,
+    bias: &'a mut Matrix,
+    delta_bias: &'a mut Matrix,
 
     neuron_count: usize,
 

@@ -1,10 +1,11 @@
 use std::alloc::{alloc, dealloc, Layout};
 
-pub struct Matrix<'a> {
-    data: &'a mut u64,
-    rows: u32,
-    columns: u32,
-    total: u32,
+pub struct Matrix {
+    data: *mut u8,
+    data_layout: Layout,
+    rows: usize,
+    columns: usize,
+    total: usize,
 }
 
 
@@ -19,13 +20,31 @@ implementation of Rust Vec: https://doc.rust-lang.org/nomicon/vec.html
 Eventually, it turned out that the standard lib provides an easy way to allocate aligned memory on the heap...
 Double check if this is a suitable analog for the _aligned_alloc() windows function
 
+Furthermore, it turns out the call to alloc requires unsafe Rust, which is to be avoided as much as possible.
+
 */
-impl Matrix<'_> {
-    pub fn new(rows: u32, columns: u32) -> Self {
-        unimplemented!();
+impl Matrix {
+    pub unsafe fn new(rows: usize, columns: usize) -> Self {
+        let total = rows * columns;
+        let data_layout = Layout::from_size_align(std::mem::size_of::<u64>() * total, 64).unwrap();
+        Matrix {
+            rows,
+            columns,
+            total: total,
+            data_layout: data_layout,
+            data: alloc(data_layout),
+        }
     }
 }
 
+impl Drop for Matrix {
+    fn drop(&mut self) {
+        unsafe {
+            dealloc(self.data, self.data_layout);
+        }
+    }
+
+}
 ///
 /// Testing the aligned memory allocation provided by the Rust std lib
 /// 
