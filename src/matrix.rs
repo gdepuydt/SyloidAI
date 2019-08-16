@@ -28,15 +28,17 @@ Furthermore, it turns out the call to alloc requires unsafe Rust, which is to be
 
 */
 impl Matrix {
-    pub unsafe fn new(rows: usize, columns: usize) -> Self {
+    pub fn new(rows: usize, columns: usize) -> Option<Box<Self>> {
         let total = rows * columns;
         let data_layout = Layout::from_size_align(std::mem::size_of::<f32>() * total as usize, 64).unwrap();
-        Matrix {
-            rows,
-            columns,
+        unsafe {
+            Some(Box::new(Matrix {
+            rows: rows,
+            columns: columns,
             total: total,
             data_layout: data_layout,
             data: alloc(data_layout) as *mut f32,
+            }))
         }
     }
 
@@ -45,10 +47,28 @@ impl Matrix {
             panic!("Requested element ouside Matrix index bounds.");
         }
 
-        let index = (&self.columns * row) + column;
+        let index = self.get_index(row, column);
         unsafe {
             self.data.add(index) as *mut f32
         }
+    }
+
+    pub fn put(&self, row: usize, column: usize, value: f32) {
+        if self.rows <= row || self.columns <= column {
+            panic!("Requested element ouside Matrix index bounds.");
+        }
+        let index = self.get_index(row, column);
+        unsafe {
+            let ptr = self.data.add(index) as *mut f32;
+            *(ptr) = value;
+        }
+    }
+
+    pub fn get_index(&self, row: usize, column: usize) -> usize {
+        if self.rows <= row || self.columns <= column {
+            panic!("Requested element ouside Matrix index bounds.");
+        }
+        (&self.columns * row) + column
     }
 
     pub fn mul(&self, a: &Matrix, b: &Matrix) {
@@ -165,6 +185,19 @@ mod tests {
              
              assert!((ptr as usize)  % layout.align() == 0);
              dealloc(ptr, layout);
+        }
+    }
+    ///
+    /// Testing Matrix methods
+    /// 
+
+    #[test]
+    fn create_matrix() {
+        let a = Matrix::new(2, 2).unwrap();
+        assert_eq!(a.total, 4);
+        a.put(0,0,10.0);
+        unsafe {
+            assert_eq!(*(a.get(0, 0)), 10.0f32);
         }
     }
 }
