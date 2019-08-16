@@ -22,6 +22,7 @@ pub struct Layer {
 
     // This is a double linked list... which is hard in Rust... I will need to study for this one... :/
     // And these layers are stored in a vector with each element holding knowledge of its neighbours...........
+    // https://rust-unofficial.github.io/too-many-lists/ see if this helps.
     previous_layer: Option<Box<Layer>>,
     next_layer: Option<Box<Layer>>,
 }
