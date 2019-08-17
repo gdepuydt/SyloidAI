@@ -23,8 +23,8 @@ pub struct Layer {
     // This is a double linked list... which is hard in Rust... I will need to study for this one... :/
     // And these layers are stored in a vector with each element holding knowledge of its neighbours...........
     // https://rust-unofficial.github.io/too-many-lists/ see if this helps.
-    previous_layer: Option<Box<Layer>>,
-    next_layer: Option<Box<Layer>>,
+    previous_layer: Option<&'static Box<Layer>>,
+    next_layer: Option<&'static Box<Layer>>,
 }
 
 impl<'a> Layer {
@@ -47,9 +47,24 @@ impl<'a> Layer {
         
     }
 
-    pub fn set_previous_layer(& mut self, previous_layer: Box<Layer>, trainingset_batch_size: usize) {
+    pub fn set_hidden_layer(& mut self, previous_layer: &'static Box<Layer>, trainingset_batch_size: usize) {
         self.previous_layer = Some(previous_layer);
-        
+        previous_layer.next_layer = Some(&Box::from_raw(self));
+
+        self.activations = Matrix::new(self.neuron_count, trainingset_batch_size);
+        self.delta_activations = Matrix::new(self.neuron_count, trainingset_batch_size);
+
+        self.sums =  Matrix::new(self.neuron_count, trainingset_batch_size);
+        self.delta_sums = Matrix::new(self.neuron_count, trainingset_batch_size);
+
+        self.weights =  Matrix::new(self.neuron_count, previous_layer.neuron_count);
+        self.delta_weights = Matrix::new(self.neuron_count, previous_layer.neuron_count);
+
+        self.bias =  Matrix::new(self.neuron_count, 1);
+        self.delta_bias = Matrix::new(self.neuron_count, 1);
+
+        // None:
+        self.next_layer = None
     }
 
     pub fn feed_forward() {
